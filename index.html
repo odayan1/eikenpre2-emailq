@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英検準2級 疑問文マスター（試作版）</title>
+<style>
+:root{
+  --sky:#2fbdea; --green:#8dc63f; --yellow:#f7d000;
+  --ink:#2b3a42; --bg:#f4fafd; --card:#ffffff;
+  --ng:#e74c3c; --ok:#27ae60;
+}
+*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+body{font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic',Meiryo,sans-serif; background:var(--bg); color:var(--ink); min-height:100vh;}
+.wrap{max-width:640px; margin:0 auto; padding:16px;}
+header{background:linear-gradient(135deg,var(--sky),#1fa9d6); color:#fff; padding:14px 16px; border-radius:0 0 18px 18px;}
+header .brand{font-size:12px; opacity:.9; letter-spacing:.08em;}
+header h1{font-size:19px; margin-top:2px;}
+header .sub{font-size:12px; opacity:.85; margin-top:2px;}
+.card{background:var(--card); border-radius:16px; padding:20px; box-shadow:0 3px 14px rgba(43,58,66,.08); margin-bottom:14px;}
+.btn{display:block; width:100%; padding:14px; border:none; border-radius:12px; font-size:16px; font-weight:bold; cursor:pointer; transition:.15s;}
+.btn:active{transform:scale(.98);}
+.btn-main{background:var(--sky); color:#fff;}
+.btn-green{background:var(--green); color:#fff;}
+.btn-ghost{background:#eef5f9; color:var(--ink);}
+.btn+.btn{margin-top:10px;}
+.cat-chip{display:inline-block; background:var(--yellow); color:#6b5900; font-size:11px; font-weight:bold; border-radius:999px; padding:3px 12px; margin-bottom:8px;}
+/* ---- level map ---- */
+.lv-card{display:flex; align-items:center; gap:12px; background:var(--card); border-radius:14px; padding:14px 16px; box-shadow:0 2px 10px rgba(43,58,66,.07); margin-bottom:10px; cursor:pointer; border:2px solid transparent; transition:.15s;}
+.lv-card:active{transform:scale(.985);}
+.lv-card.locked{opacity:.5; cursor:default;}
+.lv-card.cleared{border-color:var(--green);}
+.lv-card.honban{background:linear-gradient(135deg,#fff8dc,#fff); border-color:var(--yellow);}
+.lv-num{min-width:44px; height:44px; border-radius:50%; background:#dfeef5; color:#5d7381; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:15px;}
+.lv-card.cleared .lv-num{background:var(--green); color:#fff;}
+.lv-card.honban .lv-num{background:var(--yellow); color:#6b5900;}
+.lv-info{flex:1;}
+.lv-title{font-size:14px; font-weight:800; line-height:1.4;}
+.lv-desc{font-size:11px; color:#8aa2ae; margin-top:2px; line-height:1.5;}
+.lv-state{font-size:18px;}
+.map-note{font-size:11px; color:#9ab0bb; text-align:center; margin:12px 0 4px; line-height:1.7;}
+.teacher-link{font-size:11px; color:#b9ccd6; text-align:center; text-decoration:underline; cursor:pointer; margin-top:8px;}
+/* ---- step progress in level ---- */
+.step-dots{display:flex; gap:5px; justify-content:center; margin-bottom:12px;}
+.sdot{width:9px; height:9px; border-radius:50%; background:#d5e5ee; transition:.2s;}
+.sdot.cur{background:var(--sky); transform:scale(1.3);}
+.sdot.hit{background:var(--green);}
+/* ---- lesson ---- */
+.formula-box{background:#eef5f9; border:2px solid var(--sky); border-radius:10px; padding:14px; text-align:center; font-size:16px; font-weight:800; color:#1288ab; margin-bottom:14px; line-height:1.6;}
+.example-box{background:#f7fbfd; border-left:4px solid var(--green); border-radius:8px; padding:10px 12px; margin-bottom:8px; font-size:14px; line-height:1.6;}
+.example-box .jp{color:#7b93a0; font-size:12px; margin-top:2px;}
+.example-box .arrow{color:var(--sky); font-weight:800;}
+.mistake-box{background:#fff5f5; border:1px dashed var(--ng); border-radius:8px; padding:10px 12px; font-size:13px; color:#a33; margin-top:12px; line-height:1.6;}
+.mistake-box b{display:block; margin-bottom:2px;}
+/* ---- transform drill ---- */
+.stmt-box{background:#f2f9fc; border-radius:10px; padding:12px 14px; margin-bottom:6px; font-size:15px; line-height:1.7;}
+.stmt-box .lbl{font-size:11px; color:#7b93a0; font-weight:bold; display:block; margin-bottom:2px;}
+.stmt-box .jp{color:#7b93a0; font-size:12px; margin-top:2px;}
+.big-arrow{text-align:center; color:var(--sky); font-size:20px; font-weight:800; margin:4px 0;}
+.q-prompt{font-size:14px; font-weight:bold; margin-bottom:10px; color:var(--ink);}
+.answer-row{min-height:52px; display:flex; flex-wrap:wrap; gap:8px; background:#f2f9fc; border:2px dashed #bcdcec; border-radius:10px; padding:10px; margin-bottom:12px;}
+.answer-row.correct{border-style:solid; border-color:var(--ok); background:#eafaf0;}
+.answer-row.wrong{border-style:solid; border-color:var(--ng); background:#fdeeec;}
+.tok{background:var(--sky); color:#fff; border:none; border-radius:8px; padding:9px 12px; font-size:15px; font-weight:bold; cursor:pointer;}
+.tok:active{transform:scale(.95);}
+.bank{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
+.bank .tok{background:#eef5f9; color:var(--ink);}
+.tok.placed-tok{background:#dfeef5; color:#7b93a0;}
+.mini-btn{border:none; background:#eef5f9; color:var(--ink); border-radius:999px; padding:6px 14px; font-size:12px; font-weight:bold; cursor:pointer;}
+.feedback{border-radius:12px; padding:14px; margin-top:2px; margin-bottom:12px; font-size:13px; line-height:1.7; display:none;}
+.feedback.show{display:block;}
+.feedback.good{background:#eafaf0; border:1px solid var(--ok);}
+.feedback.bad{background:#fdeeec; border:1px solid var(--ng);}
+.feedback .verdict{font-weight:800; font-size:15px; margin-bottom:6px;}
+/* ---- free write ---- */
+.context-box{background:#f2f9fc; border-left:4px solid var(--sky); border-radius:8px; padding:12px 14px; font-size:14px; line-height:1.7; margin-bottom:14px;}
+.context-box .place{color:var(--sky); font-weight:bold;}
+.free-input{width:100%; min-height:76px; font-size:16px; border:2px solid #dfeef5; border-radius:10px; padding:12px; font-family:inherit; resize:vertical;}
+.free-input:focus{outline:none; border-color:var(--sky);}
+.check-list{margin-top:12px; font-size:13px;}
+.check-item{display:flex; align-items:flex-start; gap:8px; padding:5px 0;}
+.check-icon{font-weight:800; min-width:18px;}
+.check-icon.ok{color:var(--ok);}
+.check-icon.ng{color:#c99;}
+.model-box{background:#eafaf0; border:1px solid var(--ok); border-radius:10px; padding:12px; margin-top:10px; font-size:14px; line-height:1.75;}
+.model-box .label{font-size:11px; color:#2f8f52; font-weight:bold; margin-bottom:4px;}
+.hint-box{background:#fffbe6; border:1px solid var(--yellow); border-radius:10px; padding:10px 12px; margin-top:10px; font-size:13px; display:none;}
+.hint-box.show{display:block;}
+.small-note{font-size:11px; color:#9ab0bb; margin-top:8px; line-height:1.6;}
+/* ---- clear / result ---- */
+.stage-intro{text-align:center;}
+.stage-intro .big{font-size:21px; font-weight:800; margin:8px 0;}
+.stage-intro p{font-size:14px; line-height:1.8; color:#5d7381; margin:10px 0 16px;}
+.badge-num{display:inline-block; background:var(--yellow); color:#6b5900; border-radius:999px; font-size:12px; font-weight:800; padding:3px 12px;}
+.result-score{text-align:center; font-size:28px; font-weight:800; color:var(--sky); margin-bottom:4px;}
+.recap-item{border-left:4px solid var(--sky); background:#f7fbfd; border-radius:10px; padding:10px 12px; margin-bottom:10px; font-size:13px; line-height:1.7;}
+.recap-item .model{color:#2f8f52; margin-top:4px;}
+.confetti-piece{position:fixed; top:-14px; z-index:999; pointer-events:none; animation:confall linear forwards;}
+@keyframes confall{to{transform:translateY(108vh) rotate(720deg);}}
+textarea.prompt{width:100%; height:150px; font-size:12px; border:1px solid #d5e5ee; border-radius:10px; padding:10px; margin-top:8px; color:#5d7381; resize:vertical;}
+.back-link{font-size:12px; color:#8aa2ae; cursor:pointer; margin-bottom:10px; display:inline-block;}
+footer{text-align:center; font-size:11px; color:#a6bcc7; padding:18px 0 30px;}
+@media(max-width:520px){
+  .wrap{padding:12px;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">KATEぷら｜つまずきを、プラスに。</div>
+    <h1>英検準2級 疑問文マスター</h1>
+    <div class="sub">大問5（Eメール）対策・試作版 v3</div>
+  </div>
+</header>
+<div class="wrap">
+  <div id="app"></div>
+</div>
+<footer>※本アプリは英検®の過去問を参考にしたオリジナル教材です。英検を主催する日本英語検定協会とは無関係の非公式アプリです。</footer>
+
+<script>
+/* =========================================================
+   レベルデータ（かんたん→むずかしい の順）
+   Yes/Noで答えられる疑問文 → 疑問詞の疑問文 の順に並べる
+   ========================================================= */
+var LEVELS = [
+  {
+    key:"be",
+    short:"Lv1",
+    title:"be動詞のYes/No疑問文",
+    desc:"Is / Was を前に出すだけ。いちばん簡単な疑問文",
+    formula:"Is/Are/Was/Were + 主語 + …?",
+    lead:"「はい／いいえ」で答えられる疑問文の中で、いちばん簡単な形。<b>be動詞を主語の前に出すだけ</b>で完成します。",
+    examples:[
+      {before:"The hotel is new.", after:"Is the hotel new?", jp:"そのホテルは新しいですか。"},
+      {before:"The movie was interesting.", after:"Was the movie interesting?", jp:"その映画はおもしろかったですか。"}
+    ],
+    mistake:"doやdoesと一緒に使わないこと。「Does the hotel is new?」は間違い。be動詞の文はbe動詞を前に出すだけでよい。",
+    drills:[
+      {s:"The museum is near the station.", sJp:"その博物館は駅の近くにあります。", q:"Is the museum near the station?", point:"is を主語（the museum）の前に出すだけ。"},
+      {s:"The restaurant was crowded.", sJp:"そのレストランは混んでいました。", q:"Was the restaurant crowded?", point:"過去の文なら was を前に出す。"}
+    ],
+    free:[
+      {place:"a new café", context:"I found a new café near my school yesterday.",
+       cue:"このカフェが「駅から近いかどうか」Yes/Noで聞いてみよう。",
+       models:["Is the café near the station?","Is it close to the station?"]},
+      {place:"a movie", context:"I watched a new movie with my friends last night.",
+       cue:"この映画が「おもしろかったかどうか」聞いてみよう。",
+       models:["Was the movie interesting?","Was it fun?"]}
+    ]
+  },
+  {
+    key:"thereis",
+    short:"Lv2",
+    title:"There is / There are の疑問文",
+    desc:"「〜はありますか？」と存在を尋ねる",
+    formula:"Is there + 単数の名詞 …?　/　Are there + 複数の名詞 …?",
+    lead:"「〜はありますか？」と<b>あるかないかを尋ねる</b>ときの形。これもYes/Noで答えられる疑問文です。",
+    examples:[
+      {before:"There is a pool in the hotel.", after:"Is there a pool in the hotel?", jp:"そのホテルにプールはありますか。"},
+      {before:"There are many shops.", after:"Are there many shops?", jp:"お店はたくさんありますか。"}
+    ],
+    mistake:"thereは「そこに」という意味ではなく形だけの主語。単数なら Is there、複数なら Are there を使い分ける。",
+    drills:[
+      {s:"There is a parking lot near the stadium.", sJp:"スタジアムの近くに駐車場があります。", q:"Is there a parking lot near the stadium?", point:"There is → Is there にひっくり返すだけ。"},
+      {s:"There are many food stalls at the festival.", sJp:"お祭りにはたくさんの屋台があります。", q:"Are there many food stalls at the festival?", point:"複数（stalls）なので Are there を使う。"}
+    ],
+    free:[
+      {place:"a hot spring hotel", context:"During winter vacation, I stayed at a hot spring hotel with my grandparents.",
+       cue:"「屋外の温泉（outdoor bath）があるかどうか」聞いてみよう。",
+       models:["Is there an outdoor bath?"]},
+      {place:"a science museum", context:"I visited a new science museum with my brother last weekend.",
+       cue:"「子ども向けのイベントがあるかどうか」聞いてみよう。",
+       models:["Are there any events for children?","Is there an event for children?"]}
+    ]
+  },
+  {
+    key:"dodoes",
+    short:"Lv3",
+    title:"一般動詞のYes/No疑問文（Do/Does/Did）",
+    desc:"Do/Does/Did で始めて、動詞は原形に戻す",
+    formula:"Do/Does + 主語 + 動詞の原形 …?（現在）\nDid + 主語 + 動詞の原形 …?（過去）",
+    lead:"be動詞ではないふつうの動詞（open, have, visitなど）の文は、<b>Do/Does/Didを文の頭につけて、動詞を原形に戻します</b>。これもYes/Noで答えられる疑問文です。",
+    examples:[
+      {before:"The shop opens every day.", after:"Does the shop open every day?", jp:"その店は毎日開いていますか。"},
+      {before:"You visited the castle.", after:"Did you visit the castle?", jp:"あなたはその城を訪れましたか。"}
+    ],
+    mistake:"いちばん多いミスは動詞を原形に戻し忘れること。「Does it opens?」ではなく「Does it open?」。didを使ったら動詞は過去形ではなく原形（Did you visited → Did you visit）。",
+    drills:[
+      {s:"The market opens every day.", sJp:"その市場は毎日開いています。", q:"Does the market open every day?", point:"opens → 原形 open に戻すのがポイント。"},
+      {s:"You booked the tickets.", sJp:"あなたはチケットを予約しました。", q:"Did you book the tickets?", point:"過去の文は Did + 原形（booked → book）。"}
+    ],
+    free:[
+      {place:"a night market", context:"While traveling abroad, I visited a famous night market with my friend.",
+       cue:"「この市場が毎日開いているかどうか」聞いてみよう。",
+       models:["Does the market open every day?"]},
+      {place:"an amusement park", context:"My cousin and I spent the whole day at an amusement park.",
+       cue:"「チケットを事前に予約したかどうか」聞いてみよう。",
+       models:["Did you book the tickets in advance?","Did you buy the tickets before you went?"]}
+    ]
+  },
+  {
+    key:"what",
+    short:"Lv4",
+    title:"What の疑問文",
+    desc:"「何？」「何時？」と具体的な答えを引き出す",
+    formula:"What (time) + do/does/did/is/was + 主語 (+動詞)?",
+    lead:"ここからはYes/Noでは答えられない疑問文。<b>Whatを文の頭に置き、その後ろはさっきまでのYes/No疑問文と同じ語順</b>にします。",
+    examples:[
+      {before:"（答え）The museum opens at 9:00.", after:"What time does the museum open?", jp:"その博物館は何時に開きますか。"},
+      {before:"（答え）The ticket was 2,000 yen.", after:"What was the price of the ticket?", jp:"チケットの値段はいくらでしたか。"}
+    ],
+    mistake:"Whatの後ろの語順に注意。「What time the museum opens?」は間違い。What time + does + the museum + open? の順。",
+    drills:[
+      {s:"The museum opens at 9:00.", sJp:"（この答えを引き出す質問を作ろう）その博物館は9時に開きます。", q:"What time does the museum open?", point:"What time + Does疑問文の語順。opensは原形openに。"},
+      {s:"The ticket was 2,000 yen.", sJp:"（この答えを引き出す質問を作ろう）チケットは2,000円でした。", q:"What was the price of the ticket?", point:"What + be動詞疑問文の語順。"}
+    ],
+    free:[
+      {place:"a science museum", context:"I visited a new science museum with my brother last weekend.",
+       cue:"この博物館の「閉まる時間」を聞いてみよう。",
+       models:["What time does the museum close?"]},
+      {place:"a cooking class", context:"I took a cooking class for the first time yesterday.",
+       cue:"このクラスで「何を作ったか」聞いてみよう。",
+       models:["What did you make in the class?","What did you cook?"]}
+    ]
+  },
+  {
+    key:"howmany",
+    short:"Lv5",
+    title:"How many / How much の疑問文",
+    desc:"「いくつ？」「いくら?」と数・量を尋ねる",
+    formula:"How many + 名詞(複数) + do/does/did/can/are/were + 主語 (+動詞)?\nHow much + is/was/does it cost …?",
+    lead:"数を尋ねるなら<b>How many + 複数形の名詞</b>、値段や量を尋ねるなら<b>How much</b>。後ろの語順はこれまでと同じです。",
+    examples:[
+      {before:"（答え）The stadium has 50,000 seats.", after:"How many seats does the stadium have?", jp:"そのスタジアムには座席がいくつありますか。"},
+      {before:"（答え）The ticket was 1,500 yen.", after:"How much was the ticket?", jp:"チケットはいくらでしたか。"}
+    ],
+    mistake:"How manyの直後には名詞の複数形（seats, people）を置く。「How many does the stadium have seats?」のように名詞を後ろに残さない。",
+    drills:[
+      {s:"The stadium has 50,000 seats.", sJp:"（この答えを引き出す質問を作ろう）スタジアムには5万席あります。", q:"How many seats does the stadium have?", point:"How many seats をまとめて文の頭に。"},
+      {s:"Thirty people were on the boat.", sJp:"（この答えを引き出す質問を作ろう）ボートには30人乗っていました。", q:"How many people were on the boat?", point:"How many people が主語になるので、そのままwereを続ける。"}
+    ],
+    free:[
+      {place:"a food festival", context:"My family and I went to a food festival held in the park.",
+       cue:"このお祭りの「屋台の数」を聞いてみよう。",
+       models:["How many food stalls does the festival have?","How many food stalls are there?"]},
+      {place:"a soccer stadium", context:"My dad took me to watch a professional soccer match at a big stadium.",
+       cue:"「チケットがいくらだったか」聞いてみよう。",
+       models:["How much was the ticket?","What was the price of the ticket?"]}
+    ]
+  },
+  {
+    key:"howfar",
+    short:"Lv6",
+    title:"How far / How long / How often の疑問文",
+    desc:"距離・時間の長さ・頻度を尋ねる",
+    formula:"How far / How long / How often + is/does + 主語 (+動詞)?",
+    lead:"<b>How far＝距離、How long＝時間の長さ、How often＝頻度</b>。何を知りたいかでHowの相棒を使い分けます。",
+    examples:[
+      {before:"（答え）It is three kilometers from the station.", after:"How far is it from the station?", jp:"駅からどれくらいの距離ですか。"},
+      {before:"（答え）The tour takes two hours.", after:"How long does the tour take?", jp:"そのツアーはどれくらい時間がかかりますか。"}
+    ],
+    mistake:"far / long / often の選び間違いに注意。距離を聞きたいのに How long と言うと「時間の長さ」の意味になってしまう。",
+    drills:[
+      {s:"It is three kilometers from the station.", sJp:"（この答えを引き出す質問を作ろう）駅から3キロです。", q:"How far is it from the station?", point:"距離なので How far。後ろはbe動詞疑問文の語順。"},
+      {s:"The tour takes two hours.", sJp:"（この答えを引き出す質問を作ろう）ツアーは2時間かかります。", q:"How long does the tour take?", point:"時間の長さなので How long。takes→原形take。"}
+    ],
+    free:[
+      {place:"a new aquarium", context:"Last Sunday, I went to a new aquarium that just opened near the coast.",
+       cue:"この水族館が「駅からどれくらい遠いか」聞いてみよう。",
+       models:["How far is it from the station?","Is it far from the station?"]},
+      {place:"a summer camp", context:"I went to a summer camp in the mountains with my classmates.",
+       cue:"このキャンプが「どれくらいの期間だったか」聞いてみよう。",
+       models:["How long was the camp?","How many days was the camp?"]}
+    ]
+  }
+];
+
+/* =========================================================
+   本番チャレンジ（大問5そのままの形式）
+   ========================================================= */
+var HONBAN = [
+  {place:"a robot exhibition",
+   email:"Hi! I have to tell you something exciting. Last weekend, I went to a robot exhibition with my uncle. It was held at a big convention center downtown. Some robots could even dance and sing! I want to go again with my friends next time. Do you think robots will become more common in our daily lives?",
+   models:["How many robots does the exhibition have?","What time does the exhibition close?","Is it far from the station?","Is there a gift shop?"]},
+  {place:"a jazz concert",
+   email:"Hi! Last Friday, my sister took me to a jazz concert at a music hall in the city. It was my first time listening to live jazz, and the band was amazing. I bought a T-shirt at the concert, too. Do you think jazz will become popular among young people?",
+   models:["How much was the ticket?","Is the music hall near the station?","How long was the concert?","How many people were at the concert?"]}
+];
+
+/* =========================================================
+   ユーティリティ・進捗保存
+   ========================================================= */
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){
+    var j = Math.floor(Math.random()*(i+1));
+    var t=a[i]; a[i]=a[j]; a[j]=t;
+  }
+  return a;
+}
+function escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+var STORE_KEY = "emailq_v3_progress";
+function loadProgress(){
+  try{
+    var raw = localStorage.getItem(STORE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {cleared:[]};
+}
+function saveProgress(p){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){}
+}
+function isCleared(key){
+  return loadProgress().cleared.indexOf(key) >= 0;
+}
+function markCleared(key){
+  var p = loadProgress();
+  if(p.cleared.indexOf(key) < 0){ p.cleared.push(key); saveProgress(p); }
+}
+function isUnlocked(idx){
+  if(idx === 0) return true;
+  return isCleared(LEVELS[idx-1].key);
+}
+function allLevelsCleared(){
+  return LEVELS.every(function(L){ return isCleared(L.key); });
+}
+
+/* =========================================================
+   セッション状態
+   ========================================================= */
+var S = {
+  screen:"map",
+  lvIdx:0,
+  sub:"explain",   // explain -> drill -> free -> clear
+  drillIdx:0,
+  freeIdx:0,
+  honbanIdx:0,
+  honbanLog:[]
+};
+
+var appEl = document.getElementById("app");
+
+function render(){
+  if(S.screen==="map") return renderMap();
+  if(S.screen==="level") return renderLevel();
+  if(S.screen==="honbanIntro") return renderHonbanIntro();
+  if(S.screen==="honban") return renderHonban();
+  if(S.screen==="honbanResult") return renderHonbanResult();
+}
+
+/* ---------------- レベルマップ ---------------- */
+function renderMap(){
+  var html = '<div class="card" style="text-align:center;">'+
+    '<span class="cat-chip">大問5対策</span>'+
+    '<div style="font-size:17px;font-weight:800;margin:6px 0;">下線部への「質問2つ」を自分で作れるようになろう</div>'+
+    '<p style="font-size:13px;color:#5d7381;line-height:1.8;">かんたんな疑問文（Yes/Noで答えられる形）から順番にレベルアップ。各レベルで「解説→変身ドリル→自分で書く」の3ステップ。全レベルクリアで本番チャレンジが解放されます。</p>'+
+  '</div>';
+
+  LEVELS.forEach(function(L, i){
+    var unlocked = isUnlocked(i);
+    var cleared = isCleared(L.key);
+    var cls = "lv-card" + (unlocked ? "" : " locked") + (cleared ? " cleared" : "");
+    var state = cleared ? "✅" : (unlocked ? "▶" : "🔒");
+    html += '<div class="'+cls+'" data-lv="'+i+'">'+
+      '<div class="lv-num">'+L.short+'</div>'+
+      '<div class="lv-info"><div class="lv-title">'+L.title+'</div><div class="lv-desc">'+L.desc+'</div></div>'+
+      '<div class="lv-state">'+state+'</div>'+
+    '</div>';
+  });
+
+  var honbanOpen = allLevelsCleared();
+  var honbanCleared = isCleared("honban");
+  html += '<div class="lv-card honban'+(honbanOpen ? "" : " locked")+(honbanCleared ? " cleared" : "")+'" id="honbanCard">'+
+    '<div class="lv-num">本番</div>'+
+    '<div class="lv-info"><div class="lv-title">本番チャレンジ（大問5形式）</div><div class="lv-desc">メールを読んで、下線部への質問を2つ自由に書く</div></div>'+
+    '<div class="lv-state">'+(honbanCleared ? "✅" : (honbanOpen ? "▶" : "🔒"))+'</div>'+
+  '</div>';
+
+  html += '<div class="map-note">レベルは順番にクリアすると次が解放されます。<br>クリア済みのレベルは何度でも復習できます。</div>';
+  html += '<div class="teacher-link" id="unlockAll">先生用：すべてのレベルを解放する</div>';
+  html += '<div class="teacher-link" id="resetProgress">進み具合をリセットする</div>';
+
+  appEl.innerHTML = html;
+
+  document.querySelectorAll(".lv-card[data-lv]").forEach(function(el){
+    var i = parseInt(el.getAttribute("data-lv"), 10);
+    if(!isUnlocked(i)) return;
+    el.onclick = function(){
+      S.lvIdx = i; S.sub = "explain"; S.drillIdx = 0; S.freeIdx = 0;
+      S.screen = "level";
+      render();
+    };
+  });
+  var hb = document.getElementById("honbanCard");
+  if(honbanOpen){
+    hb.onclick = function(){
+      S.screen = "honbanIntro";
+      render();
+    };
+  }
+  document.getElementById("unlockAll").onclick = function(){
+    var p = loadProgress();
+    LEVELS.forEach(function(L){ if(p.cleared.indexOf(L.key)<0) p.cleared.push(L.key); });
+    saveProgress(p);
+    render();
+  };
+  document.getElementById("resetProgress").onclick = function(){
+    saveProgress({cleared:[]});
+    render();
+  };
+}
+
+/* ---------------- レベル内フロー ---------------- */
+function levelStepDots(){
+  var L = LEVELS[S.lvIdx];
+  var total = 1 + L.drills.length + L.free.length; // explain + drills + frees
+  var cur = 0;
+  if(S.sub==="explain") cur = 0;
+  else if(S.sub==="drill") cur = 1 + S.drillIdx;
+  else if(S.sub==="free") cur = 1 + L.drills.length + S.freeIdx;
+  else cur = total;
+  var html = '<div class="step-dots">';
+  for(var i=0;i<total;i++){
+    var cls = "sdot";
+    if(i < cur) cls += " hit";
+    if(i === cur) cls += " cur";
+    html += '<div class="'+cls+'"></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderLevel(){
+  var L = LEVELS[S.lvIdx];
+  if(S.sub==="explain") return renderExplain(L);
+  if(S.sub==="drill") return renderDrill(L);
+  if(S.sub==="free") return renderLevelFree(L);
+  if(S.sub==="clear") return renderLevelClear(L);
+}
+
+function renderExplain(L){
+  var html = '<span class="back-link" id="backMap">← レベル一覧にもどる</span>';
+  html += '<div class="card">';
+  html += levelStepDots();
+  html += '<span class="cat-chip">'+L.short+'</span>';
+  html += '<div style="font-size:17px;font-weight:800;margin-bottom:8px;">'+L.title+'</div>';
+  html += '<p style="font-size:13px;color:#5d7381;line-height:1.8;margin-bottom:12px;">'+L.lead+'</p>';
+  html += '<div class="formula-box">'+escapeHtml(L.formula).replace(/\n/g,'<br>')+'</div>';
+  L.examples.forEach(function(ex){
+    html += '<div class="example-box">'+ex.before+'<br><span class="arrow">→ '+ex.after+'</span><div class="jp">'+ex.jp+'</div></div>';
+  });
+  html += '<div class="mistake-box"><b>注意ポイント</b>'+L.mistake+'</div>';
+  html += '<button class="btn btn-main" id="toDrill" style="margin-top:16px;">変身ドリルへ</button>';
+  html += '</div>';
+  appEl.innerHTML = html;
+  document.getElementById("backMap").onclick = goMap;
+  document.getElementById("toDrill").onclick = function(){
+    S.sub = "drill"; S.drillIdx = 0;
+    render();
+  };
+}
+
+function renderDrill(L){
+  var d = L.drills[S.drillIdx];
+  var html = '<span class="back-link" id="backMap">← レベル一覧にもどる</span>';
+  html += '<div class="card">';
+  html += levelStepDots();
+  html += '<span class="cat-chip">'+L.short+' 変身ドリル '+(S.drillIdx+1)+'/'+L.drills.length+'</span>';
+  html += '<div class="stmt-box"><span class="lbl">もとの文</span>'+d.s+'<div class="jp">'+d.sJp+'</div></div>';
+  html += '<div class="big-arrow">↓ 疑問文に変身させよう ↓</div>';
+  html += '<div class="answer-row" id="answerRow"></div>';
+  html += '<div class="bank" id="bankRow"></div>';
+  html += '<button class="mini-btn" id="resetBtn">やり直す</button>';
+  html += '<div class="feedback" id="feedback"></div>';
+  html += '<button class="btn btn-main" id="nextBtn" style="display:none;">次へ</button>';
+  html += '</div>';
+  appEl.innerHTML = html;
+  document.getElementById("backMap").onclick = goMap;
+
+  bindOrderDrill(d.q, d.point, function(){
+    S.drillIdx++;
+    if(S.drillIdx >= L.drills.length){
+      S.sub = "free"; S.freeIdx = 0;
+    }
+    render();
+  });
+}
+
+function bindOrderDrill(full, point, onNext){
+  var words = full.replace(/\?$/, " ?").split(" ").filter(function(w){return w.length;});
+  var tokens = shuffle(words);
+  var answerRow = document.getElementById("answerRow");
+  var bankRow = document.getElementById("bankRow");
+  var placed = [];
+
+  function renderBank(){
+    bankRow.innerHTML = "";
+    tokens.forEach(function(tok,i){
+      if(placed.indexOf(i) >= 0) return;
+      var b = document.createElement("button");
+      b.className = "tok";
+      b.textContent = tok;
+      b.onclick = function(){ placed.push(i); renderAnswer(); renderBank(); };
+      bankRow.appendChild(b);
+    });
+  }
+  function renderAnswer(){
+    answerRow.innerHTML = "";
+    placed.forEach(function(i,orderIdx){
+      var b = document.createElement("button");
+      b.className = "tok placed-tok";
+      b.textContent = tokens[i];
+      b.onclick = function(){ placed.splice(orderIdx,1); renderAnswer(); renderBank(); };
+      answerRow.appendChild(b);
+    });
+    if(placed.length === tokens.length) checkOrder();
+  }
+  function checkOrder(){
+    var built = placed.map(function(i){return tokens[i];}).join(" ");
+    var correct = (built === words.join(" "));
+    answerRow.classList.remove("correct","wrong");
+    answerRow.classList.add(correct ? "correct" : "wrong");
+    var fb = document.getElementById("feedback");
+    fb.className = "feedback show " + (correct ? "good" : "bad");
+    fb.innerHTML = '<div class="verdict">'+(correct ? "◯ 正解！" : "△ 惜しい！もう一度「やり直す」で挑戦してもOK")+'</div>'+
+      '正しい形： <b>'+full+'</b><br>'+ point;
+    var next = document.getElementById("nextBtn");
+    next.style.display = "block";
+    next.onclick = onNext;
+  }
+  document.getElementById("resetBtn").onclick = function(){
+    placed = [];
+    answerRow.classList.remove("correct","wrong");
+    var fb = document.getElementById("feedback");
+    fb.className = "feedback";
+    document.getElementById("nextBtn").style.display = "none";
+    renderAnswer(); renderBank();
+  };
+  renderBank(); renderAnswer();
+}
+
+/* ---------------- レベル内・自分で書く ---------------- */
+function selfCheckText(text){
+  var t = (text||"").trim();
+  var endsWithQ = /\?\s*$/.test(t);
+  var startsOk = /^(what|how|is|are|was|were|do|does|did|can|could)\b/i.test(t);
+  var hasLength = t.split(/\s+/).filter(Boolean).length >= 3;
+  return {endsWithQ:endsWithQ, startsOk:startsOk, hasLength:hasLength, text:t};
+}
+
+function checklistHtml(check){
+  function item(ok, label){
+    return '<div class="check-item"><span class="check-icon '+(ok?'ok':'ng')+'">'+(ok?'✓':'？')+'</span><span>'+label+'</span></div>';
+  }
+  return '<div class="check-list">'+
+    item(check.hasLength, "3語以上で書けている") +
+    item(check.startsOk, "疑問文らしい語（What/How/Is/Are/Was/Were/Do/Does/Did など）で始まっている") +
+    item(check.endsWithQ, "文の最後が「?」になっている") +
+    '</div>'+
+    '<div class="small-note">※このチェックは簡易的なものです。文法が正しいかは、下の模範解答と見比べて先生と確認しましょう。</div>';
+}
+
+function renderLevelFree(L){
+  var item = L.free[S.freeIdx];
+  var html = '<span class="back-link" id="backMap">← レベル一覧にもどる</span>';
+  html += '<div class="card">';
+  html += levelStepDots();
+  html += '<span class="cat-chip">'+L.short+' 自分で書く '+(S.freeIdx+1)+'/'+L.free.length+'</span>';
+  html += '<div class="context-box"><span class="place">'+item.place+'</span> について書かれたEメールの一部：<br>"'+item.context+'"</div>';
+  html += '<div class="q-prompt">'+item.cue+'</div>';
+  html += '<textarea class="free-input" id="freeInput" placeholder="ここに英語で疑問文を書いてみよう"></textarea>';
+  html += '<button class="mini-btn" id="hintBtn" style="margin-top:8px;">型のヒントを見る</button>';
+  html += '<div class="hint-box" id="hintBox"><b>'+L.title+'</b><br>'+escapeHtml(L.formula).replace(/\n/g,'<br>')+'</div>';
+  html += '<div id="freeResult"></div>';
+  html += '<button class="btn btn-main" id="checkBtn" style="margin-top:12px;">確認する</button>';
+  html += '<button class="btn btn-green" id="nextBtn" style="display:none;">次へ</button>';
+  html += '</div>';
+  appEl.innerHTML = html;
+  document.getElementById("backMap").onclick = goMap;
+
+  document.getElementById("hintBtn").onclick = function(){
+    document.getElementById("hintBox").classList.toggle("show");
+  };
+  document.getElementById("checkBtn").onclick = function(){
+    var text = document.getElementById("freeInput").value;
+    var check = selfCheckText(text);
+    document.getElementById("freeResult").innerHTML = checklistHtml(check) +
+      '<div class="model-box"><div class="label">模範解答の例</div>' +
+      item.models.map(function(m){return '<div>'+m+'</div>';}).join("") +
+      '</div>';
+    document.getElementById("checkBtn").style.display = "none";
+    document.getElementById("nextBtn").style.display = "block";
+  };
+  document.getElementById("nextBtn").onclick = function(){
+    S.freeIdx++;
+    if(S.freeIdx >= L.free.length){
+      S.sub = "clear";
+      markCleared(L.key);
+    }
+    render();
+  };
+}
+
+function renderLevelClear(L){
+  var nextIdx = S.lvIdx + 1;
+  var hasNext = nextIdx < LEVELS.length;
+  var html = '<div class="card stage-intro">';
+  html += '<div class="result-score">🎉 '+L.short+' クリア！</div>';
+  html += '<p>「'+L.title+'」をマスターしました。</p>';
+  if(hasNext){
+    html += '<button class="btn btn-main" id="nextLv">次のレベルへ（'+LEVELS[nextIdx].title+'）</button>';
+  } else {
+    html += '<p style="font-weight:bold;color:var(--ink);">全レベルクリア！本番チャレンジが解放されました。</p>';
+    html += '<button class="btn btn-main" id="toHonban">本番チャレンジへ</button>';
+  }
+  html += '<button class="btn btn-ghost" id="backMapBtn">レベル一覧にもどる</button>';
+  html += '</div>';
+  appEl.innerHTML = html;
+  launchConfetti(25);
+
+  if(hasNext){
+    document.getElementById("nextLv").onclick = function(){
+      S.lvIdx = nextIdx; S.sub = "explain"; S.drillIdx = 0; S.freeIdx = 0;
+      render();
+    };
+  } else {
+    document.getElementById("toHonban").onclick = function(){
+      S.screen = "honbanIntro";
+      render();
+    };
+  }
+  document.getElementById("backMapBtn").onclick = goMap;
+}
+
+function goMap(){
+  S.screen = "map";
+  render();
+}
+
+/* ---------------- 本番チャレンジ ---------------- */
+function renderHonbanIntro(){
+  appEl.innerHTML =
+    '<span class="back-link" id="backMap">← レベル一覧にもどる</span>'+
+    '<div class="card stage-intro">'+
+      '<span class="badge-num">本番チャレンジ</span>'+
+      '<div class="big">大問5と同じ形式で挑戦！</div>'+
+      '<p>Alexからのメールを読んで、下線部について<b>自分で考えた質問を2つ</b>自由に書きます。ヒントはありません。学んだ6つの型から自分で選んで書きましょう。全'+(HONBAN.length*2)+'問です。</p>'+
+      '<button class="btn btn-main" id="btnGo">スタート</button>'+
+    '</div>';
+  document.getElementById("backMap").onclick = goMap;
+  document.getElementById("btnGo").onclick = function(){
+    S.honbanIdx = 0; S.honbanLog = [];
+    S.screen = "honban";
+    render();
+  };
+}
+
+function renderHonban(){
+  var totalQ = HONBAN.length * 2;
+  var scIdx = Math.floor(S.honbanIdx / 2);
+  var qIdx = S.honbanIdx % 2;
+  var sc = HONBAN[scIdx];
+
+  var dotsHtml = '<div class="step-dots">';
+  for(var i=0;i<totalQ;i++){
+    var cls = "sdot";
+    if(i < S.honbanIdx) cls += " hit";
+    if(i === S.honbanIdx) cls += " cur";
+    dotsHtml += '<div class="'+cls+'"></div>';
+  }
+  dotsHtml += '</div>';
+
+  var html = '<div class="card">';
+  html += dotsHtml;
+  html += '<span class="cat-chip">場面 '+(scIdx+1)+' ・ 質問 '+(qIdx+1)+'/2</span>';
+  if(qIdx===0){
+    html += '<div class="context-box">Alexからのメール：<br>"'+sc.email+'"</div>';
+  } else {
+    html += '<div class="context-box">（同じメールについて、もう1つ質問を作ろう。1つ目とは違う型を使えるとベスト）</div>';
+  }
+  html += '<div class="q-prompt">下線部（<span style="color:var(--sky);font-weight:bold;">'+sc.place+'</span>）について、具体的な質問を自由に書いてみよう。</div>';
+  html += '<textarea class="free-input" id="freeInput" placeholder="ここに英語で疑問文を書いてみよう"></textarea>';
+  html += '<div id="freeResult"></div>';
+  html += '<button class="btn btn-main" id="checkBtn" style="margin-top:12px;">確認する</button>';
+  html += '<button class="btn btn-green" id="nextBtn" style="display:none;">次へ</button>';
+  html += '</div>';
+  appEl.innerHTML = html;
+
+  document.getElementById("checkBtn").onclick = function(){
+    var text = document.getElementById("freeInput").value;
+    var check = selfCheckText(text);
+    S.honbanLog.push({place:sc.place, mine:check.text, models:sc.models});
+    document.getElementById("freeResult").innerHTML = checklistHtml(check) +
+      '<div class="model-box"><div class="label">模範解答の例（この中のどれかと同じ内容ならOK。違う内容でも文法が正しければOK）</div>' +
+      sc.models.map(function(m){return '<div>'+m+'</div>';}).join("") +
+      '</div>';
+    document.getElementById("checkBtn").style.display = "none";
+    document.getElementById("nextBtn").style.display = "block";
+  };
+  document.getElementById("nextBtn").onclick = function(){
+    S.honbanIdx++;
+    if(S.honbanIdx >= totalQ){
+      markCleared("honban");
+      S.screen = "honbanResult";
+    }
+    render();
+  };
+}
+
+function renderHonbanResult(){
+  var html = '<div class="card">';
+  html += '<div class="result-score">🎉 本番チャレンジ完了！</div>';
+  html += '<p style="text-align:center;color:#5d7381;font-size:13px;margin-bottom:14px;">書いた質問を振り返ろう。</p>';
+  S.honbanLog.forEach(function(w){
+    html += '<div class="recap-item">'+
+      '<div><b>'+w.place+'</b></div>'+
+      '<div>あなたの答え： '+(w.mine ? escapeHtml(w.mine) : "（未記入）")+'</div>'+
+      '<div class="model">模範解答の例： '+w.models.join(" / ")+'</div>'+
+      '</div>';
+  });
+  var promptText = buildAIPrompt();
+  html += '<div class="hint-box show" style="margin-top:14px;"><b>AIに投げて添削してもらおう（コピペ用）</b>'+
+          '<textarea class="prompt" readonly>'+escapeHtml(promptText)+'</textarea></div>';
+  html += '<button class="btn btn-main" id="retryHonban" style="margin-top:14px;">本番チャレンジをもう一度</button>';
+  html += '<button class="btn btn-ghost" id="backMapBtn">レベル一覧にもどる</button>';
+  html += '</div>';
+  appEl.innerHTML = html;
+  launchConfetti(40);
+
+  document.getElementById("retryHonban").onclick = function(){
+    S.screen = "honbanIntro";
+    render();
+  };
+  document.getElementById("backMapBtn").onclick = goMap;
+}
+
+function buildAIPrompt(){
+  var base = "私は英検準2級のEメール問題（大問5）の『下線部について具体的な質問を2つ自分で考えて書く』練習をしています。以下は私が書いた質問です。それぞれについて、文法的に正しいか、内容として自然な質問かをやさしく教えてください。\n\n";
+  S.honbanLog.forEach(function(w,i){
+    base += (i+1)+". 場面：" + w.place + " ／ 私の質問：" + (w.mine || "（未記入）") + "\n";
+  });
+  return base;
+}
+
+function launchConfetti(n){
+  var colors = ["#2fbdea","#8dc63f","#f7d000","#e74c3c"];
+  for(var i=0;i<n;i++){
+    (function(){
+      var el = document.createElement("div");
+      el.className = "confetti-piece";
+      el.style.left = Math.random()*100+"vw";
+      el.style.width = el.style.height = (6+Math.random()*6)+"px";
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      el.style.animationDuration = (2.2+Math.random()*1.6)+"s";
+      document.body.appendChild(el);
+      setTimeout(function(){ el.remove(); }, 4200);
+    })();
+  }
+}
+
+/* =========================================================
+   起動
+   ========================================================= */
+render();
+</script>
+</body>
+</html>
